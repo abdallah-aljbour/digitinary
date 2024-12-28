@@ -89,14 +89,13 @@
 
 // export default App;
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom"; // Import React Router
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import ChatApplication from "./tasks/chatapplication1"; // Your ChatApplication task
-import { useSelector, useDispatch } from "react-redux";
-import { setTask } from "./redux/reducers/taskSlice"; // Import the action from the slice
+import TaskApplicationManagement from "./tasks/taskmanagementapplication"; // Your Task Application
+import { useSelector } from "react-redux";
 
 function App() {
   const task = useSelector((state) => state.task.task); // Access Redux state
-  const dispatch = useDispatch(); // To dispatch actions
 
   return (
     <Router>
@@ -106,7 +105,12 @@ function App() {
           <ul className="flex space-x-4 text-white">
             <li>
               <Link to="/chatapplication" className="hover:underline">
-                Go To ChatApplication Task
+                Go To Chat Application
+              </Link>
+            </li>
+            <li>
+              <Link to="/taskapplicationmanagement" className="hover:underline">
+                Go To Task Application Management
               </Link>
             </li>
           </ul>
@@ -114,7 +118,6 @@ function App() {
 
         {/* Routing */}
         <Routes>
-          {/* Default route - Welcome message */}
           <Route
             path="/"
             element={
@@ -125,8 +128,11 @@ function App() {
             }
           />
 
-          {/* ChatApplication route */}
           <Route path="/chatapplication" element={<ChatApplication />} />
+          <Route
+            path="/taskapplicationmanagement"
+            element={<TaskApplicationManagement />}
+          />
         </Routes>
 
         {/* Render current task content */}

@@ -60,6 +60,7 @@
 // }
 
 // export default App;
+// src/tasks/chatapplication1/App.js
 import { useState, useEffect, useRef } from "react";
 import ChatWindow from "./component/ChatWindow";
 import MessageInput from "./component/MessageInput";
