@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import ChatWindow from "./component/ChatWindow";
 import MessageInput from "./component/MessageInput";
 import UserList from "./component/UserList";
@@ -6,22 +6,12 @@ import UserList from "./component/UserList";
 function ChatApplication() {
   const [messages, setMessages] = useState([]);
   const [waitingForResponse, setWaitingForResponse] = useState(false);
-  const [users, setUsers] = useState([
+  const [users] = useState([
     { id: 1, name: "Abdalla" },
     { id: 2, name: "Ahmad" },
     { id: 3, name: "Moath" },
     { id: 4, name: "Sara" },
   ]);
-  const messageCounter = useRef(1);
-
-  const simulatedMessages = [
-    "Hello there!",
-    "How's it going?",
-    "What's up everyone?",
-    "Let's plan something fun!",
-    "Any updates for today?",
-    "Good vibes only!",
-  ];
 
   const sendMessage = (newMessage, author = "Abdalla") => {
     const message = {
@@ -35,6 +25,15 @@ function ChatApplication() {
   };
 
   useEffect(() => {
+    const simulatedMessages = [
+      "Hello there!",
+      "How's it going?",
+      "What's up everyone?",
+      "Let's plan something fun!",
+      "Any updates for today?",
+      "Good vibes only!",
+    ];
+
     const intervalId = setInterval(() => {
       if (waitingForResponse) {
         const randomUser = users[Math.floor(Math.random() * users.length)];
@@ -48,7 +47,7 @@ function ChatApplication() {
     }, 3000);
 
     return () => clearInterval(intervalId);
-  }, [waitingForResponse, users]);
+  }, [waitingForResponse, users]); // Dependencies
 
   return (
     <div className="App">
