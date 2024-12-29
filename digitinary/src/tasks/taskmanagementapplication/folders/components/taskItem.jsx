@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { useTaskContext } from "../context/TaskContext";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addToReduxFavorites,
+  removeFromReduxFavorites,
+} from "../../../../redux/reducers/taskSlice";
 import { toast } from "react-toastify";
+import { useLocation } from "react-router-dom";
 import {
   validateTaskName,
   validateDueDate,
@@ -9,14 +15,56 @@ import {
 } from "../utils/validation";
 
 const TaskItem = ({ task }) => {
-  const { dispatch } = useTaskContext();
+  const { dispatch: contextDispatch, state: contextState } = useTaskContext();
+  const reduxDispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState({ ...task });
+  const [showFavoriteOptions, setShowFavoriteOptions] = useState(false);
   const [errors, setErrors] = useState({});
+  const location = useLocation();
+
+  const reduxFavorites = useSelector((state) => state.tasks.reduxFavorites);
+
+  const isInFavorites = location.pathname.includes("favorites");
+  const isContextFavorite = contextState.favorites.some(
+    (favTask) => favTask.id === task.id
+  );
+  const isReduxFavorite = reduxFavorites.some(
+    (favTask) => favTask.id === task.id
+  );
 
   const handleDelete = () => {
-    dispatch({ type: "DELETE_TASK", payload: task.id });
+    contextDispatch({ type: "DELETE_TASK", payload: task.id });
+    if (isReduxFavorite) {
+      reduxDispatch(removeFromReduxFavorites(task.id));
+    }
     toast.success("Task deleted successfully!");
+  };
+
+  const handleFavoriteToggle = () => {
+    setShowFavoriteOptions(!showFavoriteOptions);
+  };
+
+  const handleContextFavorite = () => {
+    if (isContextFavorite) {
+      contextDispatch({ type: "REMOVE_FROM_FAVORITES", payload: task.id });
+      toast.info("Removed from Context favorites");
+    } else {
+      contextDispatch({ type: "ADD_TO_FAVORITES", payload: task });
+      toast.success("Added to Context favorites");
+    }
+    setShowFavoriteOptions(false);
+  };
+
+  const handleReduxFavorite = () => {
+    if (isReduxFavorite) {
+      reduxDispatch(removeFromReduxFavorites(task.id));
+      toast.info("Removed from Redux favorites");
+    } else {
+      reduxDispatch(addToReduxFavorites(task));
+      toast.success("Added to Redux favorites");
+    }
+    setShowFavoriteOptions(false);
   };
 
   const validateField = (name, value) => {
@@ -44,7 +92,6 @@ const TaskItem = ({ task }) => {
     const { name, value } = e.target;
     setEditedTask({ ...editedTask, [name]: value });
 
-    // Live validation
     const error = validateField(name, value);
     setErrors((prev) => ({
       ...prev,
@@ -64,7 +111,6 @@ const TaskItem = ({ task }) => {
   const handleEditSubmit = (e) => {
     e.preventDefault();
 
-    // Validate all fields before submission
     const newErrors = {
       taskName: validateTaskName(editedTask.taskName),
       dueDate: validateDueDate(editedTask.dueDate),
@@ -75,15 +121,21 @@ const TaskItem = ({ task }) => {
     setErrors(newErrors);
 
     if (Object.values(newErrors).every((error) => !error)) {
-      dispatch({ type: "EDIT_TASK", payload: editedTask });
+      contextDispatch({ type: "EDIT_TASK", payload: editedTask });
       setIsEditing(false);
       toast.success("Task updated successfully!");
     }
   };
 
-  return (
-    <li className="task-item p-4 bg-white shadow-lg rounded-md">
-      {isEditing ? (
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditedTask({ ...task });
+    setErrors({});
+  };
+
+  if (isEditing && !isInFavorites) {
+    return (
+      <li className="task-item p-4 bg-white shadow-lg rounded-md">
         <form onSubmit={handleEditSubmit} className="space-y-4">
           <div>
             <label htmlFor="taskName" className="block text-lg font-medium">
@@ -91,6 +143,7 @@ const TaskItem = ({ task }) => {
             </label>
             <input
               type="text"
+              id="taskName"
               name="taskName"
               value={editedTask.taskName}
               onChange={handleEditChange}
@@ -109,6 +162,7 @@ const TaskItem = ({ task }) => {
             </label>
             <input
               type="date"
+              id="dueDate"
               name="dueDate"
               value={editedTask.dueDate}
               onChange={handleEditChange}
@@ -126,6 +180,7 @@ const TaskItem = ({ task }) => {
               Priority
             </label>
             <select
+              id="priority"
               name="priority"
               value={editedTask.priority}
               onChange={handleEditChange}
@@ -133,6 +188,7 @@ const TaskItem = ({ task }) => {
                 errors.priority ? "border-red-500" : "border-gray-300"
               }`}
             >
+              <option value="">Select Priority</option>
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
@@ -147,49 +203,57 @@ const TaskItem = ({ task }) => {
               Description
             </label>
             <textarea
+              id="description"
               name="description"
               value={editedTask.description}
               onChange={handleEditChange}
-              className={`w-full p-3 border rounded-md ${
+              rows="3"
+              maxLength="200"
+              className={`w-full p-3 border rounded-md resize-none ${
                 errors.description ? "border-red-500" : "border-gray-300"
               }`}
-              maxLength="200"
             />
             {errors.description && (
               <p className="text-red-500 text-sm mt-1">{errors.description}</p>
             )}
+            <p className="text-gray-500 text-sm mt-1">
+              {editedTask.description.length}/200 characters
+            </p>
           </div>
 
-          <div className="flex justify-between">
-            <button
-              type="submit"
-              disabled={!isFormValid()}
-              className={`p-2 rounded-md ${
-                isFormValid()
-                  ? "bg-blue-500 hover:bg-blue-600 text-white"
-                  : "bg-gray-400 text-white cursor-not-allowed"
-              }`}
-            >
-              Save
-            </button>
+          <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={() => {
-                setIsEditing(false);
-                setErrors({});
-              }}
-              className="bg-gray-500 text-white p-2 rounded-md hover:bg-gray-600"
+              onClick={handleCancel}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
             >
               Cancel
             </button>
+            <button
+              type="submit"
+              disabled={!isFormValid()}
+              className={`px-4 py-2 rounded-md ${
+                isFormValid()
+                  ? "bg-blue-500 hover:bg-blue-600 text-white"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              Save Changes
+            </button>
           </div>
         </form>
-      ) : (
-        <>
-          <h3 className="text-xl font-semibold">{task.taskName}</h3>
-          <p className="text-gray-600">Due Date: {task.dueDate}</p>
+      </li>
+    );
+  }
+
+  return (
+    <li className="task-item p-4 bg-white shadow-lg rounded-md relative">
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <h3 className="text-xl font-semibold mb-2">{task.taskName}</h3>
+          <p className="text-gray-600 mb-2">Due Date: {task.dueDate}</p>
           <p
-            className={`inline-block px-2 py-1 rounded-full text-sm ${
+            className={`inline-block px-3 py-1 rounded-full text-sm ${
               task.priority === "High"
                 ? "bg-red-100 text-red-800"
                 : task.priority === "Medium"
@@ -199,23 +263,70 @@ const TaskItem = ({ task }) => {
           >
             {task.priority}
           </p>
-          <p className="mt-2 text-gray-700">{task.description}</p>
-          <div className="flex space-x-4 mt-4">
-            <button
-              onClick={() => setIsEditing(true)}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded-md"
-            >
-              Edit
-            </button>
-            <button
-              onClick={handleDelete}
-              className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-md"
-            >
-              Delete
-            </button>
-          </div>
-        </>
-      )}
+        </div>
+        <div className="relative">
+          <button
+            onClick={handleFavoriteToggle}
+            className={`p-2 rounded-full transition-colors duration-200 ${
+              isContextFavorite || isReduxFavorite
+                ? "bg-pink-500 hover:bg-pink-600 text-white"
+                : "bg-gray-200 hover:bg-gray-300 text-gray-600"
+            }`}
+          >
+            {isContextFavorite || isReduxFavorite ? "★" : "☆"}
+          </button>
+
+          {showFavoriteOptions && (
+            <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+              <div className="py-1">
+                <button
+                  onClick={handleContextFavorite}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
+                >
+                  <span>
+                    {isContextFavorite
+                      ? "Remove from Context"
+                      : "Add to Context"}
+                  </span>
+                  {isContextFavorite && (
+                    <span className="text-pink-500">★</span>
+                  )}
+                </button>
+                <button
+                  onClick={handleReduxFavorite}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
+                >
+                  <span>
+                    {isReduxFavorite ? "Remove from Redux" : "Add to Redux"}
+                  </span>
+                  {isReduxFavorite && (
+                    <span className="text-purple-500">★</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <p className="text-gray-700 mt-3 mb-4">{task.description}</p>
+
+      <div className="flex justify-end space-x-3">
+        {!isInFavorites && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+          >
+            Edit
+          </button>
+        )}
+        <button
+          onClick={handleDelete}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+        >
+          Delete
+        </button>
+      </div>
     </li>
   );
 };

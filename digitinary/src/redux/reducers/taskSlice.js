@@ -1,16 +1,22 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const taskSlice = createSlice({
-  name: "task",
+  name: "tasks",
   initialState: {
-    task: null,
+    reduxFavorites: [],
   },
   reducers: {
-    setTask(state, action) {
-      state.task = action.payload;
+    addToReduxFavorites: (state, action) => {
+      state.reduxFavorites.push(action.payload);
+    },
+    removeFromReduxFavorites: (state, action) => {
+      state.reduxFavorites = state.reduxFavorites.filter(
+        (task) => task.id !== action.payload
+      );
     },
   },
 });
 
-export const { setTask } = taskSlice.actions; // Export the action
-export default taskSlice.reducer; // Export the reducer
+export const { addToReduxFavorites, removeFromReduxFavorites } =
+  taskSlice.actions;
+export default taskSlice.reducer;
