@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   addToReduxFavorites,
   removeFromReduxFavorites,
+  editFavorite,
 } from "../../../../redux/reducers/taskSlice";
 import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
@@ -26,9 +27,11 @@ const TaskItem = ({ task }) => {
   const reduxFavorites = useSelector((state) => state.tasks.reduxFavorites);
 
   const isInFavorites = location.pathname.includes("favorites");
+
   const isContextFavorite = contextState.favorites.some(
     (favTask) => favTask.id === task.id
   );
+
   const isReduxFavorite = reduxFavorites.some(
     (favTask) => favTask.id === task.id
   );
@@ -61,8 +64,21 @@ const TaskItem = ({ task }) => {
       reduxDispatch(removeFromReduxFavorites(task.id));
       toast.info("Removed from Redux favorites");
     } else {
-      reduxDispatch(addToReduxFavorites(task));
-      toast.success("Added to Redux favorites");
+      // If task is being added to favorites, we can also check if it's being edited
+      if (isEditing) {
+        // Assuming 'task' is updated, e.g., name or description changed
+        const updatedTask = {
+          ...task,
+          name: "Updated Task Name", // Example of task update
+          description: "Updated Description", // Example of task update
+        };
+
+        reduxDispatch(editFavorite(updatedTask)); // Dispatch editFavorite
+        toast.success("Task updated in Redux favorites");
+      } else {
+        reduxDispatch(addToReduxFavorites(task)); // Add task to favorites
+        toast.success("Added to Redux favorites");
+      }
     }
     setShowFavoriteOptions(false);
   };
@@ -289,7 +305,7 @@ const TaskItem = ({ task }) => {
                       : "Add to Context"}
                   </span>
                   {isContextFavorite && (
-                    <span className="text-pink-500">★</span>
+                    <span className="text-sm text-gray-500">★</span>
                   )}
                 </button>
                 <button
@@ -300,7 +316,7 @@ const TaskItem = ({ task }) => {
                     {isReduxFavorite ? "Remove from Redux" : "Add to Redux"}
                   </span>
                   {isReduxFavorite && (
-                    <span className="text-purple-500">★</span>
+                    <span className="text-sm text-gray-500">★</span>
                   )}
                 </button>
               </div>
@@ -308,21 +324,16 @@ const TaskItem = ({ task }) => {
           )}
         </div>
       </div>
-
-      <p className="text-gray-700 mt-3 mb-4">{task.description}</p>
-
-      <div className="flex justify-end space-x-3">
-        {!isInFavorites && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
-          >
-            Edit
-          </button>
-        )}
+      <div className="flex justify-between items-center">
+        <button
+          onClick={() => setIsEditing(true)}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+        >
+          Edit
+        </button>
         <button
           onClick={handleDelete}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition-colors duration-200"
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
         >
           Delete
         </button>

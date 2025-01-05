@@ -89,16 +89,29 @@
 // };
 
 // export default TaskList;
-import React, { useMemo } from "react";
+import React, { useState } from "react";
+import { useMemo } from "react";
 import { useTaskContext } from "../context/TaskContext";
 import TaskItem from "./taskItem";
 import TaskSort from "./filterSort";
 import TaskFilter from "./TaskFilter";
 import { Link } from "react-router-dom";
+import { Button, Typography, Box, Paper, Menu, MenuItem } from "@mui/material";
 
 const TaskList = () => {
   const { state } = useTaskContext();
   const { tasks, priorityFilter, dueDateFilter, sortField, sortOrder } = state;
+
+  // State to manage dropdown menu
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget); // Open the menu
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null); // Close the menu
+  };
 
   const filteredAndSortedTasks = useMemo(() => {
     let filteredTasks = [...tasks];
@@ -146,42 +159,74 @@ const TaskList = () => {
   }, [tasks, priorityFilter, dueDateFilter, sortField, sortOrder]);
 
   return (
-    <div className="task-list mt-8 p-4 bg-white shadow rounded">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Task List</h2>
-        <Link
-          to="/favorites"
-          className="bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-md"
+    <Paper elevation={3} sx={{ p: 4, mt: 2 }}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={4}
+      >
+        <Typography variant="h5" fontWeight="bold">
+          Task List
+        </Typography>
+        {/* Dropdown button for "View Favorites" */}
+        <Button
+          variant="contained"
+          color="secondary"
+          sx={{ textTransform: "none" }}
+          onClick={handleMenuClick}
         >
           View Favorites
-        </Link>
-      </div>
+        </Button>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+        >
+          <MenuItem
+            component={Link}
+            to="/context-favorites"
+            onClick={handleMenuClose}
+          >
+            Context Favorites
+          </MenuItem>
+          <MenuItem
+            component={Link}
+            to="/redux-favorites"
+            onClick={handleMenuClose}
+          >
+            Redux Favorites
+          </MenuItem>
+        </Menu>
+      </Box>
 
       {tasks.length > 0 ? (
         <>
-          <div className="mb-6 space-y-4">
+          <Box mb={4}>
             <TaskFilter />
             <TaskSort />
-          </div>
+          </Box>
           {filteredAndSortedTasks.length > 0 ? (
-            <ul className="space-y-4">
+            <ul>
               {filteredAndSortedTasks.map((task) => (
                 <TaskItem key={task.id} task={task} />
               ))}
             </ul>
           ) : (
-            <div className="text-center p-4 text-gray-500">
-              <p>No tasks match the current filters.</p>
-            </div>
+            <Typography variant="body2" color="textSecondary" align="center">
+              No tasks match the current filters.
+            </Typography>
           )}
         </>
       ) : (
-        <div className="text-center p-4 text-gray-500">
-          <h2 className="text-xl font-semibold mb-2">No tasks available.</h2>
-          <p className="text-sm">Add a task to get started.</p>
-        </div>
+        <Box display="flex" flexDirection="column" alignItems="center" p={4}>
+          <Typography variant="h6" fontWeight="bold" mb={2}>
+            No tasks available.
+          </Typography>
+          <Typography variant="body2">Add a task to get started.</Typography>
+        </Box>
       )}
-    </div>
+    </Paper>
   );
 };
 

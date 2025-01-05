@@ -3,6 +3,15 @@ import { useTaskContext } from "../context/TaskContext";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
+  TextField,
+  Button,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  TextareaAutosize,
+} from "@mui/material";
+import {
   validateTaskName,
   validateDueDate,
   validatePriority,
@@ -117,21 +126,23 @@ const TaskForm = () => {
           </pre>
           <p className="mb-3">Are you sure you want to create this task?</p>
           <div className="flex gap-2 justify-end">
-            <button
+            <Button
               onClick={() => {
                 toast.dismiss();
                 setIsSubmitting(false);
               }}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
+              variant="outlined"
+              color="secondary"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleConfirmSubmit}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              variant="contained"
+              color="primary"
             >
               Confirm
-            </button>
+            </Button>
           </div>
         </div>,
         {
@@ -210,130 +221,88 @@ const TaskForm = () => {
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Task Name */}
-          <div>
-            <label htmlFor="taskName" className="block text-lg font-medium">
-              Task Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="taskName"
-              value={taskName}
-              onChange={(e) => handleFieldChange("taskName", e.target.value)}
-              onBlur={() => handleFieldChange("taskName", taskName)}
-              className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
-                ${
-                  touchedFields.taskName && errors.taskName
-                    ? "border-red-500"
-                    : "border-gray-300"
-                }`}
-              disabled={isSubmitting}
-              placeholder="Enter task name"
-            />
-            {touchedFields.taskName && errors.taskName && (
-              <p className="text-red-500 text-sm mt-1">{errors.taskName}</p>
-            )}
-          </div>
+          <TextField
+            fullWidth
+            label="Task Name"
+            variant="outlined"
+            value={taskName}
+            onChange={(e) => handleFieldChange("taskName", e.target.value)}
+            onBlur={() => handleFieldChange("taskName", taskName)}
+            error={touchedFields.taskName && errors.taskName}
+            helperText={touchedFields.taskName && errors.taskName}
+            disabled={isSubmitting}
+          />
 
           {/* Due Date */}
-          <div>
-            <label htmlFor="dueDate" className="block text-lg font-medium">
-              Due Date <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              id="dueDate"
-              value={dueDate}
-              onChange={(e) => handleFieldChange("dueDate", e.target.value)}
-              onBlur={() => handleFieldChange("dueDate", dueDate)}
-              className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
-                ${
-                  touchedFields.dueDate && errors.dueDate
-                    ? "border-red-500"
-                    : "border-gray-300"
-                }`}
-              disabled={isSubmitting}
-              min={new Date().toISOString().split("T")[0]}
-            />
-            {touchedFields.dueDate && errors.dueDate && (
-              <p className="text-red-500 text-sm mt-1">{errors.dueDate}</p>
-            )}
-          </div>
+          <TextField
+            fullWidth
+            label="Due Date"
+            variant="outlined"
+            type="date"
+            value={dueDate}
+            onChange={(e) => handleFieldChange("dueDate", e.target.value)}
+            onBlur={() => handleFieldChange("dueDate", dueDate)}
+            error={touchedFields.dueDate && errors.dueDate}
+            helperText={touchedFields.dueDate && errors.dueDate}
+            disabled={isSubmitting}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            inputProps={{
+              min: new Date().toISOString().split("T")[0],
+            }}
+          />
 
           {/* Priority */}
-          <div>
-            <label htmlFor="priority" className="block text-lg font-medium">
-              Priority <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="priority"
+          <FormControl fullWidth variant="outlined">
+            <InputLabel>Priority</InputLabel>
+            <Select
+              label="Priority"
               value={priority}
               onChange={(e) => handleFieldChange("priority", e.target.value)}
               onBlur={() => handleFieldChange("priority", priority)}
-              className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
-                ${
-                  touchedFields.priority && errors.priority
-                    ? "border-red-500"
-                    : "border-gray-300"
-                }`}
+              error={touchedFields.priority && errors.priority}
               disabled={isSubmitting}
             >
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
+              <MenuItem value="Low">Low</MenuItem>
+              <MenuItem value="Medium">Medium</MenuItem>
+              <MenuItem value="High">High</MenuItem>
+            </Select>
             {touchedFields.priority && errors.priority && (
               <p className="text-red-500 text-sm mt-1">{errors.priority}</p>
             )}
-          </div>
+          </FormControl>
 
           {/* Description */}
-          <div>
-            <label htmlFor="description" className="block text-lg font-medium">
-              Description
-            </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => handleFieldChange("description", e.target.value)}
-              onBlur={() => handleFieldChange("description", description)}
-              className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
-                ${
-                  touchedFields.description && errors.description
-                    ? "border-red-500"
-                    : "border-gray-300"
-                }`}
-              maxLength="200"
-              rows="4"
-              disabled={isSubmitting}
-              placeholder="Enter task description (optional)"
-            />
-            <div className="flex justify-between mt-1">
-              {touchedFields.description && errors.description && (
-                <p className="text-red-500 text-sm">{errors.description}</p>
-              )}
-              <p className="text-gray-500 text-sm ml-auto">
-                {description.length}/200 characters
-              </p>
-            </div>
+          <TextareaAutosize
+            minRows={4}
+            placeholder="Enter task description (optional)"
+            value={description}
+            onChange={(e) => handleFieldChange("description", e.target.value)}
+            onBlur={() => handleFieldChange("description", description)}
+            disabled={isSubmitting}
+            maxLength={200}
+            style={{ width: "100%", padding: "12px", borderRadius: "4px" }}
+          />
+          <div className="flex justify-between mt-1">
+            {touchedFields.description && errors.description && (
+              <p className="text-red-500 text-sm">{errors.description}</p>
+            )}
+            <p className="text-gray-500 text-sm ml-auto">
+              {description.length}/200 characters
+            </p>
           </div>
 
           {/* Submit Button */}
-          <button
+          <Button
             type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
             disabled={!isFormValid || isSubmitting}
-            className={`w-full p-3 text-white font-semibold rounded-md transition-colors duration-200
-              ${
-                !isFormValid || isSubmitting
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-500 hover:bg-blue-600"
-              }`}
           >
-            {isSubmitting ? (
-              <span>Creating Task...</span>
-            ) : (
-              <span>Create Task</span>
-            )}
-          </button>
+            {isSubmitting ? "Creating Task..." : "Create Task"}
+          </Button>
         </form>
       </div>
 

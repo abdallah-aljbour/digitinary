@@ -7,9 +7,6 @@ const TaskApplicationManagement = () => {
   return (
     <TaskProvider>
       <div className="App">
-        <h1 className="text-4xl font-semibold text-center mt-8">
-          Task Management
-        </h1>
         <TaskForm />
         <TaskList />
       </div>

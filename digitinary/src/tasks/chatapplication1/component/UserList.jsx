@@ -1,16 +1,30 @@
-// UserList.js
+import React from "react";
+import { Typography, List, ListItem, ListItemText, Paper } from "@mui/material";
+
 const UserList = ({ users }) => {
   return (
-    <div className="p-4 bg-gray-200 rounded-lg shadow-sm">
-      <h2 className="font-bold text-lg mb-2">Active Users</h2>
-      <ul className="space-y-2">
+    <Paper
+      sx={{
+        padding: 2,
+        backgroundColor: "#f5f5f5",
+        borderRadius: 2,
+        boxShadow: 1,
+      }}
+    >
+      <Typography variant="h6" gutterBottom>
+        Active Users
+      </Typography>
+      <List>
         {users.map((user) => (
-          <li key={user.id} className="p-2 bg-white rounded shadow-sm">
-            {user.name}
-          </li>
+          <ListItem
+            key={user.id}
+            sx={{ backgroundColor: "white", borderRadius: 1, marginBottom: 1 }}
+          >
+            <ListItemText primary={user.name} />
+          </ListItem>
         ))}
-      </ul>
-    </div>
+      </List>
+    </Paper>
   );
 };
 
