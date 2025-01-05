@@ -24,14 +24,19 @@ import { selectAuth } from "../features/auth/authSlice";
 const PrivateRoute = ({ children }) => {
   const location = useLocation();
   const { token } = useSelector(selectAuth);
+  //selectAuth: The selector selectAuth is used to retrieve the authentication state from the Redux store, specifically the token.
 
   if (!token) {
+    //The state={{ from: location }}
+    //part of the code passes the current location to the login page
+    //o after the user logs in
+    //they can be (redirected) back to the page they originally tried to access
     return (
       <Navigate to="/axiosTask/login" state={{ from: location }} replace />
     );
   }
 
-  return children;
+  return children; //Home Page
 };
 
 export default PrivateRoute;

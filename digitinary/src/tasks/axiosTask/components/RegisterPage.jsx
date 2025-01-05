@@ -110,7 +110,7 @@ const Register = () => {
             {error}
           </Alert>
         )}
-        <Button onClick={() => navigate("/login")} fullWidth sx={{ mt: 2 }}>
+        <Button onClick={() => navigate("../login")} fullWidth sx={{ mt: 2 }}>
           Already have an account? Login
         </Button>
       </Paper>
