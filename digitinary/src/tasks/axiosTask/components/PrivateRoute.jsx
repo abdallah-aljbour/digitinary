@@ -31,9 +31,7 @@ const PrivateRoute = ({ children }) => {
     //part of the code passes the current location to the login page
     //o after the user logs in
     //they can be (redirected) back to the page they originally tried to access
-    return (
-      <Navigate to="/axiosTask/login" state={{ from: location }} replace />
-    );
+    return <Navigate to="/axiosLogin" state={{ from: location }} replace />;
   }
 
   return children; //Home Page

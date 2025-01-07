@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
+  //current state
   user: null,
   token: localStorage.getItem("token") || null,
   loading: false,
@@ -11,6 +12,10 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    //reducer function
+    // it set the loading proparetyto true , and clears any existing error
+    //the state change , user:null , token: null , loading: true ,error: null
+    //why i used? It updates the UI to show that the app is processing
     loginRequest: (state) => {
       state.loading = true;
       state.error = null;
@@ -24,10 +29,8 @@ const authSlice = createSlice({
     loginFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
-      state.user = null;
-      state.token = null;
-      localStorage.removeItem("token");
     },
+
     logout: (state) => {
       state.user = null;
       state.token = null;
@@ -50,7 +53,7 @@ const authSlice = createSlice({
       state.error = action.payload;
       state.user = null;
       state.token = null;
-      localStorage.removeItem("token");
+      // localStorage.removeItem("token");
     },
   },
 });

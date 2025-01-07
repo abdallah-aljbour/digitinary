@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -18,7 +18,6 @@ import {
   Box,
   CircularProgress,
   Paper,
-  Button,
   ImageList,
   ImageListItem,
   Snackbar,
@@ -28,14 +27,20 @@ import {
   DialogActions,
   TextField,
 } from "@mui/material";
-import {
-  ArrowBack,
-  Category,
-  AttachMoney,
-  ShoppingCart,
-  Edit,
-  Delete,
-} from "@mui/icons-material";
+import Icon from "../../../reusableComponent/lucideReact";
+import Button from "../../../reusableComponent/button";
+
+const parseImageUrls = (images) => {
+  if (!images) return [];
+  return images.map((img) => {
+    try {
+      const parsed = JSON.parse(img);
+      return Array.isArray(parsed) ? parsed[0] : img;
+    } catch {
+      return img;
+    }
+  });
+};
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -51,11 +56,13 @@ const ProductDetails = () => {
   const [editedProduct, setEditedProduct] = useState({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  const imageUrls = useMemo(() => {
+    return product ? parseImageUrls(product.images) : [];
+  }, [product]);
+
   useEffect(() => {
     dispatch(fetchProductById(id));
-    return () => {
-      dispatch(clearSelectedProduct());
-    };
+    return () => dispatch(clearSelectedProduct());
   }, [dispatch, id]);
 
   useEffect(() => {
@@ -64,22 +71,15 @@ const ProductDetails = () => {
         title: product.title,
         price: product.price,
         description: product.description,
+        images: parseImageUrls(product.images),
       });
     }
   }, [product]);
 
   const handleAddToCart = () => {
-    dispatch(addToCart(product));
+    dispatch(addToCart({ ...product, images: imageUrls }));
     setSnackbarMessage("Product added to cart");
     setOpenSnackbar(true);
-  };
-
-  const handleEditClick = () => {
-    setEditDialogOpen(true);
-  };
-
-  const handleEditClose = () => {
-    setEditDialogOpen(false);
   };
 
   const handleEditSave = async () => {
@@ -94,10 +94,6 @@ const ProductDetails = () => {
       setSnackbarMessage("Failed to update product");
       setOpenSnackbar(true);
     }
-  };
-
-  const handleDeleteClick = () => {
-    setDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
@@ -115,14 +111,7 @@ const ProductDetails = () => {
 
   if (status === "loading") {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "80vh",
-        }}
-      >
+      <Box className="flex justify-center items-center min-h-screen">
         <CircularProgress />
       </Box>
     );
@@ -138,48 +127,35 @@ const ProductDetails = () => {
     );
   }
 
-  if (!product) {
-    return null;
-  }
+  if (!product) return null;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" className="py-4">
       <Button
-        startIcon={<ArrowBack />}
         onClick={() => navigate(-1)}
-        sx={{ mb: 3 }}
+        className="mb-3 inline-flex items-center gap-2 bg-transparent text-gray-900 hover:bg-gray-100 px-4 py-2 rounded-md"
       >
+        <Icon name="ArrowLeft" size={20} />
         Back to Products
       </Button>
 
-      <Paper elevation={3} sx={{ borderRadius: "16px", overflow: "hidden" }}>
+      <Paper elevation={3} className="rounded-2xl overflow-hidden">
         <Grid container>
           <Grid item xs={12} md={6}>
-            <Box sx={{ p: 3 }}>
+            <Box className="p-3">
               <Box
                 component="img"
-                src={product.images[0]}
+                src={imageUrls[0] || ""}
                 alt={product.title}
-                sx={{
-                  width: "100%",
-                  height: "400px",
-                  objectFit: "cover",
-                  borderRadius: "12px",
-                  mb: 2,
-                }}
+                className="w-full h-[400px] object-cover rounded-xl mb-2"
               />
               <ImageList cols={3} gap={8}>
-                {product.images.slice(1).map((image, index) => (
+                {imageUrls.slice(1).map((image, index) => (
                   <ImageListItem key={index}>
                     <img
                       src={image}
                       alt={`${product.title} - ${index + 2}`}
-                      style={{
-                        width: "100%",
-                        height: "100px",
-                        objectFit: "cover",
-                        borderRadius: "8px",
-                      }}
+                      className="w-full h-[100px] object-cover rounded-lg"
                     />
                   </ImageListItem>
                 ))}
@@ -188,29 +164,28 @@ const ProductDetails = () => {
           </Grid>
 
           <Grid item xs={12} md={6}>
-            <Box sx={{ p: 4 }}>
+            <Box className="p-4">
               <Typography
                 variant="h4"
                 component="h1"
-                gutterBottom
-                sx={{ fontWeight: 600, color: "#1a237e" }}
+                className="font-semibold text-blue-900 mb-4"
               >
                 {product.title}
               </Typography>
 
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Category sx={{ mr: 1, color: "text.secondary" }} />
-                <Typography variant="subtitle1" color="text.secondary">
+              <Box className="flex items-center mb-2">
+                <Icon name="Tags" size={20} className="text-gray-600" />
+                <Typography variant="subtitle1" className="text-gray-600 ml-1">
                   {product.category?.name}
                 </Typography>
               </Box>
 
-              <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-                <AttachMoney sx={{ color: "success.main" }} />
+              <Box className="flex items-center mb-3">
+                <Icon name="DollarSign" size={20} className="text-green-600" />
                 <Typography
                   variant="h5"
                   component="span"
-                  sx={{ color: "success.main", fontWeight: 600 }}
+                  className="text-green-600 font-semibold"
                 >
                   {product.price}
                 </Typography>
@@ -218,36 +193,31 @@ const ProductDetails = () => {
 
               <Typography
                 variant="body1"
-                sx={{ mb: 3, color: "text.secondary", lineHeight: 1.8 }}
+                className="text-gray-600 leading-relaxed mb-6"
               >
                 {product.description}
               </Typography>
 
-              <Box sx={{ display: "flex", gap: 2, mt: 4 }}>
+              <Box className="flex gap-2 mt-4">
                 <Button
-                  variant="contained"
-                  size="large"
-                  startIcon={<ShoppingCart />}
                   onClick={handleAddToCart}
-                  sx={{ bgcolor: "#1a237e", "&:hover": { bgcolor: "#0d1b60" } }}
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md"
                 >
+                  <Icon name="ShoppingCart" size={20} />
                   Add to Cart
                 </Button>
                 <Button
-                  variant="outlined"
-                  size="large"
-                  startIcon={<Edit />}
-                  onClick={handleEditClick}
+                  onClick={() => setEditDialogOpen(true)}
+                  className="inline-flex items-center gap-2 border-2 border-gray-900 bg-transparent text-gray-900 hover:bg-gray-100 px-4 py-2 rounded-md"
                 >
+                  <Icon name="Edit2" size={20} />
                   Edit
                 </Button>
                 <Button
-                  variant="outlined"
-                  size="large"
-                  startIcon={<Delete />}
-                  onClick={handleDeleteClick}
-                  color="error"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="inline-flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md"
                 >
+                  <Icon name="Trash2" size={20} />
                   Delete
                 </Button>
               </Box>
@@ -256,10 +226,9 @@ const ProductDetails = () => {
         </Grid>
       </Paper>
 
-      {/* Edit Dialog */}
       <Dialog
         open={editDialogOpen}
-        onClose={handleEditClose}
+        onClose={() => setEditDialogOpen(false)}
         maxWidth="sm"
         fullWidth
       >
@@ -303,14 +272,21 @@ const ProductDetails = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleEditClose}>Cancel</Button>
-          <Button variant="contained" onClick={handleEditSave}>
+          <Button
+            onClick={() => setEditDialogOpen(false)}
+            className="bg-gray-100 text-gray-900 hover:bg-gray-200 px-4 py-2 rounded-md"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleEditSave}
+            className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md"
+          >
             Save
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -320,11 +296,15 @@ const ProductDetails = () => {
           <Typography>Are you sure you want to delete this product?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
           <Button
-            variant="contained"
-            color="error"
+            onClick={() => setDeleteDialogOpen(false)}
+            className="bg-gray-100 text-gray-900 hover:bg-gray-200 px-4 py-2 rounded-md"
+          >
+            Cancel
+          </Button>
+          <Button
             onClick={handleDeleteConfirm}
+            className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md"
           >
             Delete
           </Button>

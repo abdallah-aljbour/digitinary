@@ -1,44 +1,36 @@
-import React from "react";
+// import React from "react";
 
-import { Routes, Route, Navigate } from "react-router-dom";
+// import { Routes, Route, Navigate } from "react-router-dom";
 
-import Register from "./components/RegisterPage";
-import Login from "./components/Login";
-import PrivateRoute from "./components/PrivateRoute";
-import HomePage from "./components/HomePage";
-import ProductDetails from "./components/ProductDetails";
-import { Box, Container } from "@mui/material";
+// import Register from "./components/RegisterPage";
+// import Login from "./components/Login";
+// import PrivateRoute from "./components/PrivateRoute";
 
-const AxiosTask = () => {
-  return (
-    <Container maxWidth="lg">
-      <Box sx={{ padding: "20px" }}>
-        <Routes>
-          <Route path="/" element={<Navigate to="login" replace />} />
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
+// import ProductDetails from "./components/ProductDetails";
+// import { Box, Container } from "@mui/material";
 
-          <Route
-            path="home"
-            element={
-              <PrivateRoute>
-                <HomePage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/home/product/:id"
-            element={
-              <PrivateRoute>
-                <ProductDetails />
-              </PrivateRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="login" replace />} />
-        </Routes>
-      </Box>
-    </Container>
-  );
-};
+// const AxiosTask = () => {
+//   return (
+//     <Container maxWidth="lg">
+//       <Box sx={{ padding: "20px" }}>
+//         <Routes>
+//           <Route path="/" element={<Navigate to="login" replace />} />
+//           <Route path="login" element={<Login />} />
+//           <Route path="register" element={<Register />} />
 
-export default AxiosTask;
+//           <Route
+//             path="/home/product/:id"
+//             element={
+//               <PrivateRoute>
+//                 <ProductDetails />
+//               </PrivateRoute>
+//             }
+//           />
+//           <Route path="*" element={<Navigate to="login" replace />} />
+//         </Routes>
+//       </Box>
+//     </Container>
+//   );
+// };
+
+// export default AxiosTask;

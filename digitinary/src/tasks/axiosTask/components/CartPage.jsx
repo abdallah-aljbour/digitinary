@@ -52,7 +52,7 @@ const CartPage = () => {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Button
         startIcon={<ArrowBack />}
-        onClick={() => navigate("/home")}
+        onClick={() => navigate("/storeHome")}
         sx={{ mb: 3 }}
       >
         Back to Products
@@ -73,7 +73,7 @@ const CartPage = () => {
             </Typography>
             <Button
               variant="contained"
-              onClick={() => navigate("/home")}
+              onClick={() => navigate("/storeHome")}
               sx={{
                 mt: 2,
                 bgcolor: "#1a237e",

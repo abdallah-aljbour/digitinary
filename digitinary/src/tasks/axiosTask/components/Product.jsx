@@ -33,7 +33,7 @@ const Product = ({ product }) => {
       <Box sx={{ position: "relative", pt: "56.25%" }}>
         <CardMedia
           component="img"
-          image={product.images[0]}
+          image={product.images?.[0] || "/path/to/default-image.jpg"} // Fallback image
           alt={product.title}
           sx={{
             position: "absolute",

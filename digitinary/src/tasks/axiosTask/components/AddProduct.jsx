@@ -1,159 +1,137 @@
-// components/AddProduct.jsx
-import React, { useState } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   createProduct,
   selectProductsStatus,
 } from "../features/products/productSlice";
-import {
-  Container,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Box,
-  Alert,
-  CircularProgress,
-} from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
+import useFormValidation from "../../../reusableComponent/formValidationHook";
+import FormInput from "../../../reusableComponent/formInput";
+import Button from "../../../reusableComponent/button";
+import Icon from "../../../reusableComponent/lucideReact";
+import { validationRules } from "../../../reusableComponent/validationRules";
 
 const AddProduct = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const status = useSelector(selectProductsStatus);
 
-  const [formData, setFormData] = useState({
+  const initialState = {
     title: "",
     price: "",
     description: "",
-    categoryId: 1, // Default category ID
-    images: ["https://placeimg.com/640/480/any"], // Default image
-  });
-
-  const [errors, setErrors] = useState({});
-  const [submitError, setSubmitError] = useState("");
-
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.title.trim()) {
-      newErrors.title = "Title is required";
-    }
-    if (!formData.price || formData.price <= 0) {
-      newErrors.price = "Price must be greater than 0";
-    }
-    if (!formData.description.trim()) {
-      newErrors.description = "Description is required";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    imageUrl: "https://placeimg.com/640/480/any",
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "price" ? Number(value) : value,
-    }));
+  // Using the imported validation rules
+  const productValidationRules = {
+    title: validationRules.title,
+    price: validationRules.price,
+    description: validationRules.description,
+    imageUrl: validationRules.imageUrl,
   };
+
+  const { formData, formErrors, handleChange, hasErrors } = useFormValidation(
+    initialState,
+    productValidationRules
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (hasErrors()) return;
 
     try {
-      await dispatch(createProduct(formData)).unwrap();
-      navigate("/home");
+      const submitData = {
+        ...formData,
+        categoryId: 1,
+        images: [formData.imageUrl],
+        price: Number(formData.price),
+      };
+
+      await dispatch(createProduct(submitData)).unwrap();
+      navigate("/storeHome");
     } catch (err) {
-      setSubmitError(err.message || "Failed to create product");
+      console.error("Failed to create product:", err);
     }
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Button
-        startIcon={<ArrowBack />}
-        onClick={() => navigate("/")}
-        sx={{ mb: 3 }}
-      >
-        Back to Products
-      </Button>
-
-      <Paper elevation={3} sx={{ p: 4, borderRadius: "16px" }}>
-        <Typography
-          variant="h4"
-          component="h1"
-          gutterBottom
-          sx={{ color: "#1a237e", fontWeight: 600 }}
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto">
+        <Button
+          onClick={() => navigate("/storeHome")}
+          className="mb-6 flex items-center gap-2 bg-white text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-50 transition-all duration-300"
         >
-          Add New Product
-        </Typography>
+          <Icon name="ArrowLeft" size={20} color="#4F46E5" />
+          Back to Products
+        </Button>
 
-        {submitError && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {submitError}
-          </Alert>
-        )}
+        <div className="bg-white/70 backdrop-blur-lg rounded-3xl p-8 shadow-xl">
+          <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-8">
+            Add New Product
+          </h2>
 
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            label="Title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            error={!!errors.title}
-            helperText={errors.title}
-            margin="normal"
-          />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <FormInput
+              name="title"
+              label="Title"
+              value={formData.title}
+              onChange={handleChange}
+              error={formErrors.title}
+              required
+            />
 
-          <TextField
-            fullWidth
-            label="Price"
-            name="price"
-            type="number"
-            value={formData.price}
-            onChange={handleChange}
-            error={!!errors.price}
-            helperText={errors.price}
-            margin="normal"
-          />
+            <FormInput
+              name="price"
+              label="Price"
+              type="number"
+              value={formData.price}
+              onChange={handleChange}
+              error={formErrors.price}
+              required
+            />
 
-          <TextField
-            fullWidth
-            label="Description"
-            name="description"
-            multiline
-            rows={4}
-            value={formData.description}
-            onChange={handleChange}
-            error={!!errors.description}
-            helperText={errors.description}
-            margin="normal"
-          />
+            <FormInput
+              name="description"
+              label="Description"
+              value={formData.description}
+              onChange={handleChange}
+              error={formErrors.description}
+              required
+              textarea
+              rows={4}
+            />
 
-          <Box sx={{ mt: 3 }}>
+            <FormInput
+              name="imageUrl"
+              label="Image URL"
+              value={formData.imageUrl}
+              onChange={handleChange}
+              error={formErrors.imageUrl}
+              required
+            />
+
+            {formData.imageUrl && (
+              <div className="mt-4">
+                <img
+                  src={formData.imageUrl}
+                  alt="Product preview"
+                  className="max-w-full h-auto rounded-lg shadow-md"
+                />
+              </div>
+            )}
+
             <Button
               type="submit"
-              variant="contained"
-              size="large"
-              disabled={status === "loading"}
-              sx={{
-                bgcolor: "#1a237e",
-                "&:hover": { bgcolor: "#0d1b60" },
-                minWidth: "150px",
-              }}
+              disabled={status === "loading" || hasErrors()}
+              className="w-full bg-white text-indigo-600 font-bold px-6 py-4 rounded-xl border-2 border-indigo-600 shadow-md transition-all duration-300 transform hover:bg-indigo-600 hover:text-white hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {status === "loading" ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Add Product"
-              )}
+              {status === "loading" ? "Adding Product..." : "Add Product"}
             </Button>
-          </Box>
-        </form>
-      </Paper>
-    </Container>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 };
 
