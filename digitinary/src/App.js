@@ -33,6 +33,7 @@ import ProductDetails from "./tasks/axiosTask/components/ProductDetails";
 import CartPage from "./tasks/axiosTask/components/CartPage";
 import Cart from "./tasks/axiosTask/components/Cart";
 import AddProduct from "./tasks/axiosTask/components/AddProduct";
+import RegistrationForm from "./tasks/formTask/pages/FormPage";
 
 // Route protection component
 import PrivateRoute from "./tasks/axiosTask/components/PrivateRoute";
@@ -69,10 +70,13 @@ function App() {
                     {/* General application routes */}
                     <Route path="/" element={<HomePageMain />} />
                     <Route path="/axiosTask/*" element={<AxiosTask />} />
+
                     <Route
                       path="/chatapplication"
                       element={<ChatApplication />}
                     />
+                   <Route path="/RegistrationForm" element={<RegistrationForm />} />
+
                     <Route
                       path="/taskapplicationmanagement"
                       element={<TaskApplicationManagement />}

@@ -1,4 +1,4 @@
-// validationRules.js (Extended version)
+// validationRules.js
 export const validationRules = {
   // Original rules
   name: [
@@ -31,7 +31,23 @@ export const validationRules = {
         : "",
   ],
 
-  // Product-specific rules
+  // Added registration-specific rules
+  phoneNumber: [
+    (value) => (!value ? "Phone number is required" : ""),
+    (value) => (!/^\d{10}$/.test(value) ? "Phone number must be exactly 10 digits" : ""),
+  ],
+  age: [
+    (value) => (!value ? "Age is required" : ""),
+    (value) => {
+      const age = parseInt(value);
+      return (isNaN(age) || age < 18 || age > 65) ? "Age must be between 18 and 65" : "";
+    },
+  ],
+  country: [
+    (value) => (!value ? "Please select a country" : ""),
+  ],
+
+  // Product-specific rules (keeping these for other use cases)
   title: [
     (value) => (!value.trim() ? "Title is required." : ""),
     (value) =>
@@ -65,3 +81,4 @@ export const validationRules = {
     },
   ],
 };
+

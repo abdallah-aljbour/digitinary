@@ -1,120 +1,67 @@
+// TaskForm.jsx
 import React, { useState } from "react";
 import { useTaskContext } from "../context/TaskContext";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  TextField,
-  Button,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
-  TextareaAutosize,
-} from "@mui/material";
-import {
-  validateTaskName,
-  validateDueDate,
-  validatePriority,
-  validateDescription,
-} from "../utils/validation";
+import useFormValidation from "../../../../reusableComponent/formValidationHook";
+import FormInput from "../../../../reusableComponent/formInput";
+import Button from "../../../../reusableComponent/button";
 
 const TaskForm = () => {
   const { dispatch } = useTaskContext();
-  const [taskName, setTaskName] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [priority, setPriority] = useState("Low");
-  const [description, setDescription] = useState("");
-  const [errors, setErrors] = useState({});
-  const [touchedFields, setTouchedFields] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Validate single field
-  const validateField = (fieldName, value) => {
-    let error = "";
-    switch (fieldName) {
-      case "taskName":
-        error = validateTaskName(value);
-        break;
-      case "dueDate":
-        error = validateDueDate(value);
-        break;
-      case "priority":
-        error = validatePriority(value);
-        break;
-      case "description":
-        error = validateDescription(value);
-        break;
-      default:
-        break;
-    }
-    return error;
+  // Initial form state
+  const initialState = {
+    taskName: "",
+    dueDate: "",
+    priority: "Low",
+    description: "",
   };
 
-  // Handle field changes
-  const handleFieldChange = (fieldName, value) => {
-    // Update the field value
-    switch (fieldName) {
-      case "taskName":
-        setTaskName(value);
-        break;
-      case "dueDate":
-        setDueDate(value);
-        break;
-      case "priority":
-        setPriority(value);
-        break;
-      case "description":
-        setDescription(value);
-        break;
-      default:
-        break;
-    }
-
-    // Mark field as touched
-    setTouchedFields((prev) => ({
-      ...prev,
-      [fieldName]: true,
-    }));
-
-    // Only validate if field has been touched
-    const error = validateField(fieldName, value);
-    setErrors((prev) => ({
-      ...prev,
-      [fieldName]: error,
-    }));
+  // Validation rules
+  const validationRules = {
+    taskName: [
+      (value) => (!value?.trim() ? "Task name is required" : ""),
+      (value) => (value?.trim().length < 3 ? "Task name must be at least 3 characters" : ""),
+      (value) => (value?.trim().length > 50 ? "Task name cannot exceed 50 characters" : ""),
+    ],
+    dueDate: [
+      (value) => (!value ? "Due date is required" : ""),
+      (value) => {
+        const selectedDate = new Date(value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return selectedDate < today ? "Due date cannot be in the past" : "";
+      },
+    ],
+    priority: [
+      (value) => (!value ? "Priority is required" : ""),
+      (value) => (!["Low", "Medium", "High"].includes(value) ? "Invalid priority level" : ""),
+    ],
+    description: [
+      (value) => (value?.length > 200 ? "Description cannot exceed 200 characters" : ""),
+    ],
   };
 
-  // Validate all fields
-  const validateForm = () => {
-    const formErrors = {
-      taskName: validateTaskName(taskName),
-      dueDate: validateDueDate(dueDate),
-      priority: validatePriority(priority),
-      description: validateDescription(description),
-    };
-
-    setErrors(formErrors);
-    return !Object.values(formErrors).some((error) => error !== "");
-  };
+  const {
+    formData,
+    formErrors,
+    handleChange,
+    setFormData,
+    hasErrors,
+  } = useFormValidation(initialState, validationRules);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Mark all fields as touched
-    setTouchedFields({
-      taskName: true,
-      dueDate: true,
-      priority: true,
-      description: true,
-    });
-
-    if (validateForm()) {
+    if (!hasErrors() && Object.values(formData).some(Boolean)) {
       // Create task preview
       const taskPreview = `
-        Task: ${taskName}
-        Due: ${new Date(dueDate).toLocaleDateString()}
-        Priority: ${priority}
+        Task: ${formData.taskName}
+        Due: ${new Date(formData.dueDate).toLocaleDateString()}
+        Priority: ${formData.priority}
       `;
 
       // Show confirmation toast with task preview
@@ -131,15 +78,13 @@ const TaskForm = () => {
                 toast.dismiss();
                 setIsSubmitting(false);
               }}
-              variant="outlined"
-              color="secondary"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             >
               Cancel
             </Button>
             <Button
               onClick={handleConfirmSubmit}
-              variant="contained"
-              color="primary"
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700"
             >
               Confirm
             </Button>
@@ -168,10 +113,7 @@ const TaskForm = () => {
     try {
       const newTask = {
         id: Date.now(),
-        taskName,
-        dueDate,
-        priority,
-        description,
+        ...formData,
         createdAt: new Date().toISOString(),
         status: "pending",
       };
@@ -189,12 +131,7 @@ const TaskForm = () => {
       });
 
       // Reset form
-      setTaskName("");
-      setDueDate("");
-      setPriority("Low");
-      setDescription("");
-      setErrors({});
-      setTouchedFields({});
+      setFormData(initialState);
     } catch (error) {
       toast.error("Failed to create task. Please try again.", {
         position: "top-right",
@@ -205,101 +142,88 @@ const TaskForm = () => {
     }
   };
 
+  const priorityOptions = [
+    { value: "Low", label: "Low" },
+    { value: "Medium", label: "Medium" },
+    { value: "High", label: "High" },
+  ];
+
   // Check if form is valid
   const isFormValid =
-    taskName &&
-    dueDate &&
-    priority &&
-    !Object.values(errors).some((error) => error !== "") &&
-    Object.keys(touchedFields).length >= 3;
+    formData.taskName &&
+    formData.dueDate &&
+    formData.priority &&
+    !hasErrors();
 
   return (
     <>
-      <div className="task-form max-w-2xl mx-auto p-4 bg-white shadow-lg rounded-md">
-        <h2 className="text-2xl font-semibold mb-4 text-center">
+      <div className="task-form max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+        <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
           Add a New Task
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Task Name */}
-          <TextField
-            fullWidth
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <FormInput
+            name="taskName"
             label="Task Name"
-            variant="outlined"
-            value={taskName}
-            onChange={(e) => handleFieldChange("taskName", e.target.value)}
-            onBlur={() => handleFieldChange("taskName", taskName)}
-            error={touchedFields.taskName && errors.taskName}
-            helperText={touchedFields.taskName && errors.taskName}
-            disabled={isSubmitting}
+            value={formData.taskName}
+            onChange={handleChange}
+            error={formErrors.taskName}
+            required
           />
 
-          {/* Due Date */}
-          <TextField
-            fullWidth
+          <FormInput
+            name="dueDate"
             label="Due Date"
-            variant="outlined"
             type="date"
-            value={dueDate}
-            onChange={(e) => handleFieldChange("dueDate", e.target.value)}
-            onBlur={() => handleFieldChange("dueDate", dueDate)}
-            error={touchedFields.dueDate && errors.dueDate}
-            helperText={touchedFields.dueDate && errors.dueDate}
-            disabled={isSubmitting}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            inputProps={{
-              min: new Date().toISOString().split("T")[0],
-            }}
+            value={formData.dueDate}
+            onChange={handleChange}
+            error={formErrors.dueDate}
+            required
           />
 
-          {/* Priority */}
-          <FormControl fullWidth variant="outlined">
-            <InputLabel>Priority</InputLabel>
-            <Select
-              label="Priority"
-              value={priority}
-              onChange={(e) => handleFieldChange("priority", e.target.value)}
-              onBlur={() => handleFieldChange("priority", priority)}
-              error={touchedFields.priority && errors.priority}
-              disabled={isSubmitting}
-            >
-              <MenuItem value="Low">Low</MenuItem>
-              <MenuItem value="Medium">Medium</MenuItem>
-              <MenuItem value="High">High</MenuItem>
-            </Select>
-            {touchedFields.priority && errors.priority && (
-              <p className="text-red-500 text-sm mt-1">{errors.priority}</p>
-            )}
-          </FormControl>
-
-          {/* Description */}
-          <TextareaAutosize
-            minRows={4}
-            placeholder="Enter task description (optional)"
-            value={description}
-            onChange={(e) => handleFieldChange("description", e.target.value)}
-            onBlur={() => handleFieldChange("description", description)}
-            disabled={isSubmitting}
-            maxLength={200}
-            style={{ width: "100%", padding: "12px", borderRadius: "4px" }}
+          <FormInput
+            name="priority"
+            label="Priority"
+            type="select"
+            value={formData.priority}
+            onChange={handleChange}
+            error={formErrors.priority}
+            options={priorityOptions}
+            required
           />
-          <div className="flex justify-between mt-1">
-            {touchedFields.description && errors.description && (
-              <p className="text-red-500 text-sm">{errors.description}</p>
-            )}
-            <p className="text-gray-500 text-sm ml-auto">
-              {description.length}/200 characters
-            </p>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={4}
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 
+                ${formErrors.description ? "border-red-500" : "border-gray-300"}`}
+              maxLength={200}
+            />
+            <div className="flex justify-between mt-1">
+              {formErrors.description && (
+                <p className="text-sm text-red-500">{formErrors.description}</p>
+              )}
+              <p className="text-sm text-gray-500">
+                {formData.description.length}/200 characters
+              </p>
+            </div>
           </div>
 
-          {/* Submit Button */}
           <Button
             type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
             disabled={!isFormValid || isSubmitting}
+            className={`w-full px-4 py-2 text-sm font-medium text-white rounded-md
+              ${
+                !isFormValid || isSubmitting
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
           >
             {isSubmitting ? "Creating Task..." : "Create Task"}
           </Button>
@@ -323,3 +247,4 @@ const TaskForm = () => {
 };
 
 export default TaskForm;
+

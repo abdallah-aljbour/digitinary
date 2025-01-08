@@ -62,6 +62,7 @@ const Login = () => {
         };
 
         dispatch(loginSuccess(response.data));
+        localStorage.setItem("token" , response.data.token)
         navigate("/");
       } else {
         dispatch(loginFailure("Incorrect password. Please try again."));
