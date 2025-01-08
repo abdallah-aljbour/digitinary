@@ -24,6 +24,11 @@ const HomePageMain = () => {
       title: "Axios Integration",
       description: "Seamless data handling and API integration",
     },
+    {
+      icon: <Icon name="Key" color="indigo" size={32} />,
+      title: "Form",
+      description: "You Must Input All Field",
+    },
   ];
 
   const handleSubmit = (e) => {
